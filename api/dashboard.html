@@ -104,9 +104,23 @@
   <script>
     const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit');
     function show(message, type = 'progress') { out.className = `result visible ${type}`; out.textContent = message; }
-    function showSuccess() {
+    function parsePipelineResult(result) {
+      if (typeof result !== 'string') return result || {};
+      try { return JSON.parse(result); } catch { return {}; }
+    }
+    function countOf(value) { return Array.isArray(value) ? value.length : Number(value) || 0; }
+    function showSuccess(result) {
+      const outcome = parsePipelineResult(result);
+      const logged = countOf(outcome.logged);
+      const skipped = countOf(outcome.skipped);
+      let detail = 'News sent to Slack and logged in Google Sheets.';
+      if (logged) {
+        detail = `${logged} ${logged === 1 ? 'new story was' : 'new stories were'} sent to Slack and logged in Google Sheets.`;
+      } else if (skipped) {
+        detail = `News sent to Slack. Google Sheets skipped ${skipped} ${skipped === 1 ? 'story' : 'stories'} already in the archive.`;
+      }
       out.className = 'result visible success';
-      out.innerHTML = '<div class="result-content"><span class="result-icon" aria-hidden="true">✓</span><div class="result-copy"><strong>Execution successful</strong><span>News sent to Slack and logged in Google Sheets.</span></div></div>';
+      out.innerHTML = `<div class="result-content"><span class="result-icon" aria-hidden="true">✓</span><div class="result-copy"><strong>Execution successful</strong><span>${detail}</span></div></div>`;
     }
     document.querySelectorAll('.preset').forEach(button => button.addEventListener('click', () => {
       const topic = button.dataset.topic;
@@ -125,7 +139,7 @@
         const response = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topics: selectedTopics, limit_per_topic: Number(limit.value) }) });
         const data = await response.json();
         if (!response.ok) throw Error(data.detail || 'Request failed');
-        showSuccess();
+        showSuccess(data.result);
       } catch (error) { show(error.message, 'error'); }
       finally { run.disabled = false; run.textContent = 'Run brief'; }
     };
