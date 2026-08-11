@@ -18,7 +18,7 @@
     .mark svg { width: 18px; height: 18px; }
     .tag { border: 1px solid #303946; border-radius: 4px; padding: 5px 9px; color: #a9b5c8; font-size: 12px; }
     .page { padding: 38px 0 28px; }
-    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); gap: 64px; align-items: center; }
+    .hero-grid { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); gap: 64px; align-items: center; }
     .eyebrow { margin: 0 0 13px; color: #89a7dc; font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
     .intro h1 { max-width: 680px; margin: 0; color: #f5f7fa; font-size: clamp(38px, 4.35vw, 62px); line-height: 1.05; letter-spacing: -.052em; }
     .intro p { max-width: 680px; margin: 18px 0 0; color: #aab4c3; font-size: 16px; line-height: 1.65; }
@@ -33,7 +33,7 @@
     .crewai { color: #fa736b; }
     .groq { color: #ff8747; }
     .sheets { color: #43bf7e; }
-    .workspace { margin-top: 32px; border: 1px solid #2a313d; border-radius: 10px; background: #11151d; overflow: hidden; box-shadow: 0 12px 34px rgba(0, 0, 0, .16); }
+    .workspace { position: relative; z-index: 1; margin-top: 32px; border: 1px solid #2a313d; border-radius: 10px; background: #11151d; overflow: hidden; box-shadow: 0 12px 34px rgba(0, 0, 0, .16); }
     .workspace-header { padding: 18px 24px; border-bottom: 1px solid #2a313d; display: flex; align-items: center; justify-content: space-between; }
     .workspace-header h2 { margin: 0; color: #f0f3f7; font-size: 16px; font-weight: 700; }
     .form { padding: 25px 24px 26px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: stretch; }
