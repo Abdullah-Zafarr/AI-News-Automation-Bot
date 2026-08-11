@@ -87,6 +87,18 @@ Push this repository to GitHub and import it into Vercel. Add every variable fro
 
 The schedule is `0 9 * * *` and uses UTC, which runs once daily at 9:00 UTC and works on Vercel Hobby. The dashboard's manual run button remains available for on-demand briefs. A six-hour schedule requires a Vercel plan that supports more frequent cron invocations or an external scheduler that calls the protected endpoint.
 
+### Free four-times-daily schedule
+
+The repository includes `.github/workflows/trigger-vercel-cron.yml`. GitHub Actions calls the protected Vercel endpoint at 03:00, 15:00, and 21:00 UTC; Vercel's own Hobby cron covers 09:00 UTC.
+
+Before the GitHub schedule can run, create this repository secret in **GitHub → Settings → Secrets and variables → Actions**:
+
+```text
+VERCEL_CRON_SECRET=<the same value used for CRON_SECRET in Vercel>
+```
+
+The secret is sent only as a bearer token to `/api/cron` and is never stored in the workflow file.
+
 ## Security and reliability notes
 
 - Do not commit `.env`, service-account JSON, or Slack webhook URLs.

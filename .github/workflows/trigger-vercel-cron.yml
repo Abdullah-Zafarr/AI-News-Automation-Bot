@@ -1,0 +1,24 @@
+name: Trigger additional news runs
+
+on:
+  schedule:
+    # Vercel Hobby runs the daily cron at 09:00 UTC. These three calls create
+    # a four-times-daily schedule without overlapping Vercel's own invocation.
+    - cron: "0 3,15,21 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-news-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Call the protected Vercel cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.VERCEL_CRON_SECRET }}
+          CRON_URL: https://ai-news-automation-bot-one.vercel.app/api/cron
+        run: |
+          test -n "$CRON_SECRET"
+          curl --fail --silent --show-error \
+            --retry 2 --retry-all-errors --max-time 290 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$CRON_URL"
