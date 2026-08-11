@@ -29,7 +29,7 @@ This project is a code-first CrewAI application that finds recent news, summariz
 3. Install dependencies:
 
    ```powershell
-   pip install -r requirements.txt
+   pip install -r requirements.runtime.txt
    ```
 
 4. Copy `.env.example` to `.env` and fill in the API credentials.
@@ -83,7 +83,7 @@ Date | Headline | Summary | Source URL | Source | Topic | News ID | Delivery Sta
 
 ## Vercel deployment
 
-Push this repository to GitHub and import it into Vercel. Add every variable from `.env` to Vercel Project Settings, then deploy. Vercel invokes `/api/cron` with `GET` and sends `CRON_SECRET` as an Authorization bearer token.
+Push this repository to GitHub and import it into Vercel. Add every variable from `.env` to Vercel Project Settings, then deploy. The Vercel build installs the CrewAI dependency set into the function bundle so it does not consume temporary runtime disk space during a request. Vercel invokes `/api/cron` with `GET` and sends `CRON_SECRET` as an Authorization bearer token.
 
 The schedule is `0 9 * * *` and uses UTC, which runs once daily at 9:00 UTC and works on Vercel Hobby. The dashboard's manual run button remains available for on-demand briefs. A six-hour schedule requires a Vercel plan that supports more frequent cron invocations or an external scheduler that calls the protected endpoint.
 

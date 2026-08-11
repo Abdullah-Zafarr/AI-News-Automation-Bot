@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
+
+# Vercel builds runtime dependencies into this folder so CrewAI is available
+# immediately instead of being installed in the function's limited /tmp disk.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_VENDORED_PACKAGES = _PROJECT_ROOT / "python_packages"
+if _VENDORED_PACKAGES.is_dir():
+    sys.path.insert(0, str(_VENDORED_PACKAGES))
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request

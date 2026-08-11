@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "uv pip install --target python_packages -r requirements.runtime.txt",
   "functions": {
     "api/**/*.py": {
       "maxDuration": 300,
+      "includeFiles": "{python_packages/**,src/**,api/dashboard.html}",
       "excludeFiles": "{tests/**,**/*.test.py,fixtures/**,sample-data/**}"
     }
   },

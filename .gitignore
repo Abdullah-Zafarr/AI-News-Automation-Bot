@@ -1,6 +1,8 @@
 .env
 .venv/
+python_packages/
 .vercel-deps-*-check/
+.crewai-080-measure/
 __pycache__/
 *.py[cod]
 .pytest_cache/
