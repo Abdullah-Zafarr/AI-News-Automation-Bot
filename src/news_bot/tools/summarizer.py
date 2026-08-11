@@ -4,7 +4,6 @@ import json
 import os
 import random
 import time
-from datetime import datetime, timezone
 from typing import Any, Type
 
 from crewai.tools import BaseTool
@@ -12,7 +11,7 @@ from groq import Groq, RateLimitError
 from pydantic import BaseModel, Field
 
 from ..models import Article, NewsSummary, SummaryEnvelope
-from ..utils import parse_json_payload
+from ..utils import canonical_url, parse_json_payload, relative_published_time
 
 
 class SummarizerInput(BaseModel):
@@ -93,11 +92,18 @@ class SummarizerTool(BaseTool):
 
         raw = response.choices[0].message.content or "{\"summaries\": []}"
         envelope = SummaryEnvelope.model_validate(parse_json_payload(raw))
-        today = datetime.now(timezone.utc).date().isoformat()
+        source_dates = {
+            canonical_url(str(article.url)): relative_published_time(article.published_at)
+            for article in unique_articles
+        }
         normalized: list[NewsSummary] = []
         for summary in envelope.summaries:
-            if not summary.date:
-                summary.date = today
+            # The model writes the summary, but Serper is the source of truth
+            # for publication time. This prevents mixed ISO and relative dates.
+            summary.date = source_dates.get(
+                canonical_url(str(summary.source_url)),
+                relative_published_time(summary.date),
+            )
             normalized.append(summary)
 
         return json.dumps({"summaries": [item.model_dump(mode="json") for item in normalized]})
