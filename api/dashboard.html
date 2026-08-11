@@ -45,8 +45,15 @@
     .action { width: 100%; height: 46px; border: 1px solid #6689c4; border-radius: 6px; background: #5f82bd; color: #fff; font-weight: 700; cursor: pointer; }
     .action:hover { background: #6d91cd; }
     .action:disabled { opacity: .55; cursor: wait; }
-    .result { display: none; margin: 0 24px 24px; padding: 16px; border: 1px solid #2d3644; border-radius: 6px; background: #0c0f14; color: #bdc8d8; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; max-height: 280px; overflow: auto; }
+    .result { display: none; margin: 0 24px 24px; padding: 16px 18px; border: 1px solid #2d3644; border-radius: 6px; background: #0c0f14; color: #bdc8d8; }
     .result.visible { display: block; }
+    .result.success { border-color: #29684f; background: #0d1814; color: #d9f8e8; }
+    .result.error { border-color: #7a3e46; background: #1b1013; color: #ffd9dd; }
+    .result.progress { color: #aebbd0; }
+    .result-content { display: flex; align-items: center; gap: 12px; }
+    .result-icon { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 50%; background: #1f7755; color: #fff; font-size: 16px; font-weight: 800; }
+    .result-copy strong { display: block; color: inherit; font-size: 14px; }
+    .result-copy span { display: block; margin-top: 3px; color: #a9d8bf; font-size: 13px; }
     @media (min-width: 861px) and (min-height: 700px) { body { height: 100vh; overflow: hidden; } .page { height: calc(100vh - 73px); padding: 30px 0 22px; display: grid; grid-template-rows: auto auto; align-content: space-between; gap: 30px; } .workspace { margin: 0; transform: translateY(-56px); } .footer { display: none; } }
     @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } .partners { max-width: 650px; } .form { grid-template-columns: 1fr; } .run-settings { max-width: 320px; padding: 20px 0 0; border-top: 1px solid #2b3441; border-left: 0; } .footer { display: block; } .footer span { display: block; margin-bottom: 7px; } }
     @media (max-width: 620px) { .partners { gap: 16px; } .integration { gap: 7px; font-size: 12px; } .integration-mark { width: 28px; height: 28px; flex-basis: 28px; } .integration-mark svg { width: 25px; height: 25px; } }
@@ -89,13 +96,17 @@
         <div class="field"><label for="topics">Topics</label><input id="topics" name="topics" maxlength="200" value="artificial intelligence, technology, finance, crypto" placeholder="AI, startups, climate"><p class="hint">Use commas to separate up to four topics.</p></div>
         <div class="run-settings"><div class="field"><label for="limit">Stories per topic</label><select id="limit" name="limit"><option value="1">1 story</option><option value="2" selected>2 stories</option><option value="3">3 stories</option></select></div><button id="run" class="action" type="submit">Run brief</button></div>
       </form>
-      <pre id="result" class="result" aria-live="polite"></pre>
+      <div id="result" class="result" aria-live="polite"></div>
     </section>
     <footer class="footer"><span>Search via Serper &middot; Summaries via Groq &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
   </main>
   <script>
     const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit');
-    function show(message) { out.textContent = message; out.classList.add('visible'); }
+    function show(message, type = 'progress') { out.className = `result visible ${type}`; out.textContent = message; }
+    function showSuccess() {
+      out.className = 'result visible success';
+      out.innerHTML = '<div class="result-content"><span class="result-icon" aria-hidden="true">✓</span><div class="result-copy"><strong>Execution successful</strong><span>News sent to Slack and logged in Google Sheets.</span></div></div>';
+    }
     document.querySelectorAll('.preset').forEach(button => button.addEventListener('click', () => {
       const topic = button.dataset.topic;
       const selected = topics.value.split(',').map(value => value.trim()).filter(Boolean);
@@ -113,8 +124,8 @@
         const response = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topics: selectedTopics, limit_per_topic: Number(limit.value) }) });
         const data = await response.json();
         if (!response.ok) throw Error(data.detail || 'Request failed');
-        show(JSON.stringify(data, null, 2));
-      } catch (error) { show(error.message); }
+        showSuccess();
+      } catch (error) { show(error.message, 'error'); }
       finally { run.disabled = false; run.textContent = 'Run brief'; }
     };
   </script>
