@@ -2,19 +2,19 @@
 
 This project is a code-first CrewAI application that finds recent news, summarizes it with Groq, publishes it to Slack, and archives it in Google Sheets. It uses four custom tools and does not use CrewAI's built-in Serper, Slack, or Sheets tools.
 
+## Dashboard
+
+![AI News Automation Bot dashboard](src/screenshot%20ui/ui.PNG)
+
 ## What is implemented
 
 - `NewsFetcherTool`: calls Serper's news endpoint directly with `requests`.
 - `SummarizerTool`: calls Groq directly and validates structured JSON with Pydantic.
 - `SlackBotTool`: posts messages through a Slack incoming webhook.
-- `SheetsLoggerTool`: appends successfully published stories using the Google Sheets API and prevents duplicate rows by URL-derived ID.
+- `SheetsLoggerTool`: uses the Google Sheets REST API to append successfully published stories and prevents duplicate rows by URL-derived ID.
 - Four specialized agents running in a sequential CrewAI crew.
 - FastAPI routes at `/api/health` and `/api/cron`.
 - Vercel cron schedule configured for every six hours.
-
-## Important runtime requirement
-
-CrewAI currently requires Python 3.10 through 3.13. The repository includes `.python-version` set to `3.13`. Python 3.14 is not supported by the current CrewAI requirement.
 
 ## Local setup
 
@@ -39,7 +39,7 @@ CrewAI currently requires Python 3.10 through 3.13. The repository includes `.py
    pytest
    ```
 
-6. Run the crew manually:
+6. Run the pipeline manually:
 
    ```powershell
    python -m src.news_bot.main
@@ -61,7 +61,7 @@ Create a Serper API key and put it in `SERPER_API_KEY`. The tool calls `https://
 
 ### Groq
 
-Create a Groq API key and set `GROQ_API_KEY`. `GROQ_MODEL` controls the model used by `SummarizerTool`; `CREWAI_MODEL` controls the model used by CrewAI agents.
+Create a Groq API key and set `GROQ_API_KEY`. `GROQ_MODEL` controls the direct `SummarizerTool` call; `CREWAI_MODEL` controls the CrewAI agents. The defaults use `llama-3.1-8b-instant`, fetch two stories per topic, summarize at most four unique stories total, cap output at 700 tokens, and retry a rate-limited request twice with exponential backoff. Agents are limited to three iterations so they can select a tool, receive its result, and complete their response without wasting calls. Adjust `GROQ_MAX_ARTICLES`, `GROQ_MAX_COMPLETION_TOKENS`, and `GROQ_RATE_LIMIT_RETRIES` if needed.
 
 ### Slack
 
@@ -90,7 +90,7 @@ The schedule is `0 */6 * * *` and uses UTC. Vercel Hobby accounts restrict cron 
 ## Security and reliability notes
 
 - Do not commit `.env`, service-account JSON, or Slack webhook URLs.
-- Keep the Serper result count small to control LLM cost and function duration.
+- Keep `NEWS_LIMIT_PER_TOPIC` and `GROQ_MAX_ARTICLES` small to control Groq token use and function duration.
 - The logger derives a stable news ID from the canonical source URL and skips existing IDs.
 - Vercel does not automatically retry failed cron invocations; inspect Vercel function logs and retry failed runs after fixing the cause.
 - The first version summarizes the supplied search headline and snippet. Add a separate article-content extractor only after the basic pipeline is working.

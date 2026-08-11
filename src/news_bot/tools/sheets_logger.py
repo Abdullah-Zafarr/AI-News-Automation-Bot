@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import os
 from typing import Any, ClassVar, Type
+from urllib.parse import quote
 
 from crewai.tools import BaseTool
+from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from pydantic import BaseModel, Field
 
 from ..models import NewsSummary
@@ -14,8 +15,8 @@ from ..utils import news_id, parse_json_payload
 
 
 class SheetsLoggerInput(BaseModel):
-    published_json: str | list[Any] | dict[str, Any] = Field(
-        description="Publisher result, as a JSON string or native JSON value"
+    published_json: str = Field(
+        description="Publisher result JSON returned by the notification tool."
     )
 
 
@@ -37,7 +38,7 @@ class SheetsLoggerTool(BaseTool):
         "Delivery Status",
     ]
 
-    def _service(self):
+    def _session(self) -> AuthorizedSession:
         credential_file = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE")
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
         if credential_file:
@@ -45,7 +46,7 @@ class SheetsLoggerTool(BaseTool):
                 credential_file,
                 scopes=scopes,
             )
-            return build("sheets", "v4", credentials=credentials, cache_discovery=False)
+            return AuthorizedSession(credentials)
 
         raw_credentials = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
         if not raw_credentials:
@@ -56,7 +57,12 @@ class SheetsLoggerTool(BaseTool):
             json.loads(raw_credentials),
             scopes=scopes,
         )
-        return build("sheets", "v4", credentials=credentials, cache_discovery=False)
+        return AuthorizedSession(credentials)
+
+    @staticmethod
+    def _values_url(spreadsheet_id: str, cell_range: str) -> str:
+        encoded_range = quote(cell_range, safe="")
+        return f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/{encoded_range}"
 
     def _run(self, published_json: str | list[Any] | dict[str, Any]) -> str:
         spreadsheet_id = os.getenv("GOOGLE_SHEET_ID")
@@ -69,22 +75,20 @@ class SheetsLoggerTool(BaseTool):
             return json.dumps({"logged": [], "skipped": 0})
 
         sheet_name = os.getenv("GOOGLE_SHEET_NAME", "News")
-        service = self._service()
-        existing = (
-            service.spreadsheets()
-            .values()
-            .get(spreadsheetId=spreadsheet_id, range=f"{sheet_name}!A:H")
-            .execute()
-            .get("values", [])
-        )
+        session = self._session()
+        range_name = f"{sheet_name}!A:H"
+        response = session.get(self._values_url(spreadsheet_id, range_name), timeout=20)
+        response.raise_for_status()
+        existing = response.json().get("values", [])
 
         if not existing:
-            service.spreadsheets().values().update(
-                spreadsheetId=spreadsheet_id,
-                range=f"{sheet_name}!A1:H1",
-                valueInputOption="RAW",
-                body={"values": [self.HEADERS]},
-            ).execute()
+            response = session.put(
+                self._values_url(spreadsheet_id, f"{sheet_name}!A1:H1"),
+                params={"valueInputOption": "RAW"},
+                json={"values": [self.HEADERS]},
+                timeout=20,
+            )
+            response.raise_for_status()
             existing = [self.HEADERS]
 
         existing_ids = set()
@@ -118,12 +122,15 @@ class SheetsLoggerTool(BaseTool):
             existing_ids.add(identifier)
 
         if new_rows:
-            service.spreadsheets().values().append(
-                spreadsheetId=spreadsheet_id,
-                range=f"{sheet_name}!A:H",
-                valueInputOption="RAW",
-                insertDataOption="INSERT_ROWS",
-                body={"values": new_rows},
-            ).execute()
+            response = session.post(
+                f"{self._values_url(spreadsheet_id, range_name)}:append",
+                params={
+                    "valueInputOption": "RAW",
+                    "insertDataOption": "INSERT_ROWS",
+                },
+                json={"values": new_rows},
+                timeout=20,
+            )
+            response.raise_for_status()
 
         return json.dumps({"logged": logged, "skipped": skipped})

@@ -13,8 +13,8 @@ from ..utils import parse_json_payload
 
 
 class DiscordBotInput(BaseModel):
-    summaries_json: str | list[Any] | dict[str, Any] = Field(
-        description="Summary payload, as a JSON string or native JSON value"
+    summaries_json: str = Field(
+        description="Summary JSON returned by the summarizer."
     )
 
 

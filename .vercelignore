@@ -1,0 +1,5 @@
+.venv/
+.pytest_cache/
+.vercel-deps-*-check/
+tests/
+service-account.json

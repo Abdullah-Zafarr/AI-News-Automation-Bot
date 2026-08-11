@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI News Bot</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #e8ebf0; background: #0b0d12; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; background: #0b0d12; }
+    button, input, select { font: inherit; }
+    header { border-bottom: 1px solid #252b35; }
+    .header-inner, .page { width: min(1440px, calc(100% - 48px)); margin: 0 auto; }
+    .header-inner { height: 72px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+    .mark { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid #394454; border-radius: 6px; background: #151b24; }
+    .mark svg { width: 18px; height: 18px; }
+    .tag { border: 1px solid #303946; border-radius: 4px; padding: 5px 9px; color: #a9b5c8; font-size: 12px; }
+    .page { padding: 38px 0 28px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); gap: 64px; align-items: center; }
+    .eyebrow { margin: 0 0 13px; color: #89a7dc; font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+    .intro h1 { max-width: 680px; margin: 0; color: #f5f7fa; font-size: clamp(38px, 4.35vw, 62px); line-height: 1.05; letter-spacing: -.052em; }
+    .intro p { max-width: 680px; margin: 18px 0 0; color: #aab4c3; font-size: 16px; line-height: 1.65; }
+    .presets { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 26px; }
+    .preset { height: 32px; padding: 0 12px; border: 1px solid #354152; border-radius: 16px; background: #11161f; color: #cbd5e3; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .preset:hover { border-color: #7599d4; color: #fff; background: #182233; }
+    .partners { display: flex; flex-wrap: wrap; align-items: center; gap: 34px; }
+    .integration { display: inline-flex; align-items: center; gap: 12px; color: #e7ebf2; font-size: 17px; font-weight: 700; }
+    .integration-mark { width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center; }
+    .integration-mark svg { width: 43px; height: 43px; }
+    .serper { color: #9274ff; }
+    .crewai { color: #fa736b; }
+    .groq { color: #ff8747; }
+    .sheets { color: #43bf7e; }
+    .workspace { margin-top: 32px; border: 1px solid #2a313d; border-radius: 10px; background: #11151d; overflow: hidden; box-shadow: 0 12px 34px rgba(0, 0, 0, .16); }
+    .workspace-header { padding: 18px 24px; border-bottom: 1px solid #2a313d; display: flex; align-items: center; justify-content: space-between; }
+    .workspace-header h2 { margin: 0; color: #f0f3f7; font-size: 16px; font-weight: 700; }
+    .form { padding: 25px 24px 26px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: stretch; }
+    .field label, .run-settings > label { display: block; margin: 0 0 9px; color: #cbd3df; font-size: 13px; font-weight: 650; }
+    .field input, .field select { width: 100%; height: 46px; padding: 0 13px; border: 1px solid #37404e; border-radius: 6px; background: #0c0f14; color: #f5f7fa; outline: none; }
+    .field input:focus, .field select:focus { border-color: #8aa9e0; box-shadow: 0 0 0 3px rgba(111, 147, 207, .14); }
+    .hint { margin: 8px 0 0; color: #7e899a; font-size: 12px; line-height: 1.4; }
+    .run-settings { display: grid; grid-template-rows: auto 46px; gap: 12px; padding-left: 24px; border-left: 1px solid #2b3441; }
+    .run-settings .field { display: grid; grid-template-columns: 1fr; }
+    .action { width: 100%; height: 46px; border: 1px solid #6689c4; border-radius: 6px; background: #5f82bd; color: #fff; font-weight: 700; cursor: pointer; }
+    .action:hover { background: #6d91cd; }
+    .action:disabled { opacity: .55; cursor: wait; }
+    .result { display: none; margin: 0 24px 24px; padding: 16px; border: 1px solid #2d3644; border-radius: 6px; background: #0c0f14; color: #bdc8d8; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; max-height: 280px; overflow: auto; }
+    .result.visible { display: block; }
+    @media (min-width: 861px) and (min-height: 700px) { body { height: 100vh; overflow: hidden; } .page { height: calc(100vh - 73px); padding: 30px 0 22px; display: grid; grid-template-rows: auto auto; align-content: space-between; gap: 30px; } .workspace { margin: 0; transform: translateY(-56px); } .footer { display: none; } }
+    @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } .partners { max-width: 650px; } .form { grid-template-columns: 1fr; } .run-settings { max-width: 320px; padding: 20px 0 0; border-top: 1px solid #2b3441; border-left: 0; } .footer { display: block; } .footer span { display: block; margin-bottom: 7px; } }
+    @media (max-width: 620px) { .partners { gap: 16px; } .integration { gap: 7px; font-size: 12px; } .integration-mark { width: 28px; height: 28px; flex-basis: 28px; } .integration-mark svg { width: 25px; height: 25px; } }
+    @media (max-width: 560px) { .header-inner, .page { width: calc(100% - 32px); } .header-inner { height: 64px; } .tag { display: none; } .page { padding-top: 36px; } .intro h1 { font-size: 40px; } .workspace { margin-top: 36px; } .workspace-header { padding: 16px 18px; } .workspace-header span { display: none; } .form { padding: 20px 18px; } .run-settings { max-width: none; } .result { margin: 0 18px 18px; } .footer { line-height: 1.5; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5h10.2c1.55 0 2.8 1.25 2.8 2.8v12.2H7.8A2.8 2.8 0 0 1 5 16.7V4.5Z" stroke="#E9EDF4" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.3 8h6.4M8.3 11.2h6.4M8.3 14.4h3.8" stroke="#7DA3E2" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <span>AI News Bot</span>
+      </div>
+      <span class="tag">CrewAI workflow</span>
+    </div>
+  </header>
+  <main class="page">
+    <section class="hero-grid">
+      <div class="intro">
+        <p class="eyebrow">News automation</p>
+        <h1>A focused brief for the topics that matter.</h1>
+        <p>Configure a run in seconds. Your crew searches for current reporting, writes concise updates, posts them to Slack, and keeps a structured archive in Google Sheets.</p>
+        <div class="presets" aria-label="Quick topic presets">
+          <button class="preset" type="button" data-topic="artificial intelligence">AI</button>
+          <button class="preset" type="button" data-topic="technology">Technology</button>
+          <button class="preset" type="button" data-topic="finance">Finance</button>
+          <button class="preset" type="button" data-topic="crypto">Crypto</button>
+        </div>
+      </div>
+      <aside class="partners" aria-label="Services used by this workflow">
+        <span class="integration"><span class="integration-mark serper"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="5.4" stroke="currentColor" stroke-width="2.2"/><path d="m15 15 4.2 4.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Serper</span>
+        <span class="integration"><span class="integration-mark crewai"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.8c1.9 4.2 4 6.3 8.2 8.2-4.2 1.9-6.3 4-8.2 8.2-1.9-4.2-4-6.3-8.2-8.2 4.2-1.9 6.3-4 8.2-8.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>CrewAI</span>
+        <span class="integration"><span class="integration-mark groq"><svg viewBox="0 0 24 24" fill="none"><path d="m13.8 3.7-7.1 9h4.9l-1.3 7.6 7-9h-4.8l1.3-7.6Z" fill="currentColor"/></svg></span>Groq</span>
+        <span class="integration"><span class="integration-mark sheets"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3.8h7l3 3v13.4H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3.8v3.5h3M9.5 11h5M9.5 14h5M9.5 17h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Google Sheets</span>
+      </aside>
+    </section>
+    <section class="workspace" aria-labelledby="run-title">
+      <div class="workspace-header"><h2 id="run-title">Configure a news brief</h2></div>
+      <form id="run-form" class="form">
+        <div class="field"><label for="topics">Topics</label><input id="topics" name="topics" maxlength="200" value="artificial intelligence, technology, finance, crypto" placeholder="AI, startups, climate"><p class="hint">Use commas to separate up to four topics.</p></div>
+        <div class="run-settings"><div class="field"><label for="limit">Stories per topic</label><select id="limit" name="limit"><option value="1">1 story</option><option value="2" selected>2 stories</option><option value="3">3 stories</option></select></div><button id="run" class="action" type="submit">Run brief</button></div>
+      </form>
+      <pre id="result" class="result" aria-live="polite"></pre>
+    </section>
+    <footer class="footer"><span>Search via Serper &middot; Summaries via Groq &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
+  </main>
+  <script>
+    const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit');
+    function show(message) { out.textContent = message; out.classList.add('visible'); }
+    document.querySelectorAll('.preset').forEach(button => button.addEventListener('click', () => {
+      const topic = button.dataset.topic;
+      const selected = topics.value.split(',').map(value => value.trim()).filter(Boolean);
+      if (!selected.some(value => value.toLowerCase() === topic.toLowerCase()) && selected.length < 4) { topics.value = [...selected, topic].join(', '); }
+      topics.focus();
+    }));
+    form.onsubmit = async event => {
+      event.preventDefault();
+      const selectedTopics = topics.value.trim();
+      if (!selectedTopics) { show('Enter at least one topic.'); topics.focus(); return; }
+      const count = selectedTopics.split(',').filter(topic => topic.trim()).length;
+      if (count > 4) { show('Choose up to four comma-separated topics.'); return; }
+      run.disabled = true; run.textContent = 'Running...'; show('The CrewAI workflow is running...');
+      try {
+        const response = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topics: selectedTopics, limit_per_topic: Number(limit.value) }) });
+        const data = await response.json();
+        if (!response.ok) throw Error(data.detail || 'Request failed');
+        show(JSON.stringify(data, null, 2));
+      } catch (error) { show(error.message); }
+      finally { run.disabled = false; run.textContent = 'Run brief'; }
+    };
+  </script>
+</body>
+</html>

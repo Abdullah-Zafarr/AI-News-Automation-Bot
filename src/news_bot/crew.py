@@ -8,9 +8,9 @@ from .tools import DiscordBotTool, NewsFetcherTool, SheetsLoggerTool, SlackBotTo
 
 
 def _agent_llm() -> LLM:
-    # Route through Groq's OpenAI-compatible endpoint. This avoids a
-    # CrewAI/LiteLLM cache_breakpoint incompatibility with the native Groq
-    # provider while still using the user's Groq key and model.
+    """Use Groq's OpenAI-compatible endpoint for all CrewAI agents."""
+    # Tool selection benefits from the stronger model; actual article
+    # summarization stays on the lightweight GROQ_MODEL setting.
     model = os.getenv("CREWAI_MODEL", "groq/llama-3.3-70b-versatile")
     if model.startswith("groq/"):
         model = model.removeprefix("groq/")
@@ -23,25 +23,24 @@ def _agent_llm() -> LLM:
 
 
 def build_crew() -> Crew:
-    """Build one sequential crew so every agent's output feeds the next task."""
+    """Build the required sequential multi-agent CrewAI workflow."""
     llm = _agent_llm()
+    # CrewAI needs turns to choose a tool, consume its result, and return a
+    # final task answer. Three is the smallest reliable cap for this workflow.
+    agent_options = {"llm": llm, "allow_delegation": False, "verbose": False, "max_iter": 3}
     fetcher = Agent(
         role="News Researcher",
         goal="Find recent, relevant, and diverse news for the requested topics.",
         backstory="You are a careful researcher who preserves source links and avoids duplicates.",
         tools=[NewsFetcherTool()],
-        llm=llm,
-        allow_delegation=False,
-        verbose=False,
+        **agent_options,
     )
     editor = Agent(
         role="News Editor",
         goal="Turn raw news search results into short, factual structured summaries.",
         backstory="You are a precise editor who never invents information not present in the input.",
         tools=[SummarizerTool()],
-        llm=llm,
-        allow_delegation=False,
-        verbose=False,
+        **agent_options,
     )
     notification_provider = os.getenv("NOTIFICATION_PROVIDER", "slack").lower()
     publisher_tool = DiscordBotTool() if notification_provider == "discord" else SlackBotTool()
@@ -51,18 +50,14 @@ def build_crew() -> Crew:
         goal="Publish every valid new summary clearly to the configured notification channel.",
         backstory="You format concise updates that are easy for a team to scan.",
         tools=[publisher_tool],
-        llm=llm,
-        allow_delegation=False,
-        verbose=False,
+        **agent_options,
     )
     archivist = Agent(
         role="News Archive Manager",
         goal="Log successfully published news to Google Sheets without duplicates.",
         backstory="You maintain an accurate and auditable news archive.",
         tools=[SheetsLoggerTool()],
-        llm=llm,
-        allow_delegation=False,
-        verbose=False,
+        **agent_options,
     )
 
     fetch_task = Task(
@@ -101,7 +96,6 @@ def build_crew() -> Crew:
         agent=archivist,
         context=[publish_task],
     )
-
     return Crew(
         agents=[fetcher, editor, publisher, archivist],
         tasks=[fetch_task, summarize_task, publish_task, log_task],

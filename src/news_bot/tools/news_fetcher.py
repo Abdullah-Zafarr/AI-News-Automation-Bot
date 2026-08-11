@@ -16,7 +16,7 @@ class NewsFetcherInput(BaseModel):
     topics: str = Field(
         description="Comma-separated topics, for example 'AI, technology, finance'."
     )
-    limit_per_topic: int = Field(default=5, ge=1, le=10)
+    limit_per_topic: int = Field(default=2, ge=1, le=5)
 
 
 class NewsFetcherTool(BaseTool):
@@ -29,7 +29,7 @@ class NewsFetcherTool(BaseTool):
     )
     args_schema: Type[BaseModel] = NewsFetcherInput
 
-    def _run(self, topics: str, limit_per_topic: int = 5) -> str:
+    def _run(self, topics: str, limit_per_topic: int = 2) -> str:
         api_key = os.getenv("SERPER_API_KEY")
         if not api_key:
             raise RuntimeError("SERPER_API_KEY is not configured")
@@ -37,6 +37,11 @@ class NewsFetcherTool(BaseTool):
         normalized_topics = [topic.strip() for topic in topics.split(",") if topic.strip()]
         if not normalized_topics:
             raise ValueError("At least one news topic is required")
+
+        # An LLM can request a larger value than the dashboard supplied. Keep
+        # Serper and Groq usage bounded even when that happens.
+        hard_limit = int(os.getenv("NEWS_HARD_MAX_PER_TOPIC", "3"))
+        requested_limit = max(1, min(int(limit_per_topic), hard_limit))
 
         articles: list[Article] = []
         seen_urls: set[str] = set()
@@ -48,13 +53,13 @@ class NewsFetcherTool(BaseTool):
                     "X-API-KEY": api_key,
                     "Content-Type": "application/json",
                 },
-                json={"q": topic, "num": limit_per_topic, "gl": "us", "hl": "en"},
+                json={"q": topic, "num": requested_limit, "gl": "us", "hl": "en"},
                 timeout=20,
             )
             response.raise_for_status()
             payload = response.json()
 
-            for item in payload.get("news", []):
+            for item in payload.get("news", [])[:requested_limit]:
                 url = item.get("link")
                 headline = (item.get("title") or "").strip()
                 if not url or not headline:
@@ -75,4 +80,3 @@ class NewsFetcherTool(BaseTool):
                 )
 
         return json.dumps([article.model_dump(mode="json") for article in articles])
-

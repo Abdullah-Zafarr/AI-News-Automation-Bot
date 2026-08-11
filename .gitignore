@@ -1,5 +1,6 @@
 .env
 .venv/
+.vercel-deps-*-check/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -11,4 +12,3 @@ build/
 service-account.json
 credentials.json
 token.json
-

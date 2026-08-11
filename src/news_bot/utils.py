@@ -32,7 +32,7 @@ def news_id(url: str) -> str:
 
 
 def parse_json_payload(value: str | list[Any] | dict[str, Any]) -> Any:
-    """Parse JSON returned by a preceding CrewAI task or tool."""
+    """Parse JSON returned by a preceding pipeline tool."""
     if not isinstance(value, str):
         return value
     cleaned = value.strip()
@@ -48,4 +48,3 @@ def parse_json_payload(value: str | list[Any] | dict[str, Any]) -> Any:
         start = min(starts)
         end = max(cleaned.rfind("}"), cleaned.rfind("]"))
         return json.loads(cleaned[start : end + 1])
-
