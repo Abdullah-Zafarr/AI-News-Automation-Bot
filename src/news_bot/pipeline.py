@@ -19,6 +19,8 @@ def run_news_pipeline(
     )
     configured_limit = limit_per_topic or int(os.getenv("NEWS_LIMIT_PER_TOPIC", "2"))
 
-    return build_crew().kickoff(
+    result = build_crew().kickoff(
         inputs={"topics": configured_topics, "limit_per_topic": configured_limit}
     )
+    print(f"[PIPELINE_COMPLETE] {getattr(result, 'raw', result)}")
+    return result

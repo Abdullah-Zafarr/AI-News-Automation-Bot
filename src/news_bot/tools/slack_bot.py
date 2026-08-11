@@ -66,4 +66,10 @@ class SlackBotTool(BaseTool):
                     }
                 )
 
-        return json.dumps({"posted": posted, "failed": failed, "dry_run": dry_run})
+        result = {"posted": posted, "failed": failed, "dry_run": dry_run}
+        # Keep delivery evidence in server logs without exposing webhook secrets.
+        print(
+            "[SLACK_DELIVERY] "
+            f"posted={len(posted)} failed={len(failed)} dry_run={dry_run}"
+        )
+        return json.dumps(result)
