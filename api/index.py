@@ -13,7 +13,7 @@ if _VENDORED_PACKAGES.is_dir():
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from src.news_bot.pipeline import run_news_pipeline
@@ -21,6 +21,7 @@ from src.news_bot.pipeline import run_news_pipeline
 load_dotenv()
 app = FastAPI(title="AI News Automation Bot")
 _DASHBOARD_HTML = Path(__file__).with_name("dashboard.html")
+_FAVICON_SVG = Path(__file__).with_name("favicon.svg")
 
 
 class DashboardRunRequest(BaseModel):
@@ -33,6 +34,11 @@ class DashboardRunRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 def root() -> str:
     return _DASHBOARD_HTML.read_text(encoding="utf-8")
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon() -> FileResponse:
+    return FileResponse(_FAVICON_SVG, media_type="image/svg+xml")
 
 
 @app.post("/api/run")
