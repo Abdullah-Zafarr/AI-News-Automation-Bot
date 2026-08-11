@@ -85,7 +85,7 @@ Date | Headline | Summary | Source URL | Source | Topic | News ID | Delivery Sta
 
 Push this repository to GitHub and import it into Vercel. Add every variable from `.env` to Vercel Project Settings, then deploy. Vercel invokes `/api/cron` with `GET` and sends `CRON_SECRET` as an Authorization bearer token.
 
-The schedule is `0 */6 * * *` and uses UTC. Vercel Hobby accounts restrict cron jobs to once per day; a six-hour schedule therefore requires a plan that supports more frequent cron invocations or an external scheduler that calls the protected endpoint.
+The schedule is `0 9 * * *` and uses UTC, which runs once daily at 9:00 UTC and works on Vercel Hobby. The dashboard's manual run button remains available for on-demand briefs. A six-hour schedule requires a Vercel plan that supports more frequent cron invocations or an external scheduler that calls the protected endpoint.
 
 ## Security and reliability notes
 
