@@ -9,6 +9,7 @@ from typing import Any, Type
 from crewai.tools import BaseTool
 from groq import Groq, RateLimitError
 from pydantic import BaseModel, Field
+import requests
 
 from ..models import Article, NewsSummary, SummaryEnvelope
 from ..utils import canonical_url, parse_json_payload, relative_published_time
@@ -21,11 +22,11 @@ class SummarizerInput(BaseModel):
 
 
 class SummarizerTool(BaseTool):
-    """Use Groq directly for structured summaries and local deduplication."""
+    """Use Gemini for structured summaries, with Groq as the fallback."""
 
     name: str = "Intelligent News Summarizer"
     description: str = (
-        "Deduplicates article JSON and creates concise factual summaries using Groq. "
+        "Deduplicates article JSON and creates concise factual summaries using Gemini. "
         "Returns a JSON object with a summaries array."
     )
     args_schema: Type[BaseModel] = SummarizerInput
@@ -47,13 +48,10 @@ class SummarizerTool(BaseTool):
                 seen_urls.add(url)
                 unique_articles.append(article)
 
-        # Keep a single prompt comfortably below free-tier token limits. The
-        # fetcher may return more stories across several topics, but this is
-        # the maximum number we ask Groq to process in one request.
+        # Keep a single prompt comfortably below provider token limits.
         max_articles = int(os.getenv("GROQ_MAX_ARTICLES", "4"))
         unique_articles = unique_articles[:max_articles]
 
-        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         prompt = {
             "instructions": [
                 "You are a factual news editor.",
@@ -65,7 +63,7 @@ class SummarizerTool(BaseTool):
             ],
             "articles": [article.model_dump(mode="json") for article in unique_articles],
         }
-        request_args = {
+        groq_request_args = {
             "model": os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
             "messages": [
                 {
@@ -78,19 +76,45 @@ class SummarizerTool(BaseTool):
             "max_completion_tokens": int(os.getenv("GROQ_MAX_COMPLETION_TOKENS", "700")),
             "response_format": {"type": "json_object"},
         }
-        retries = int(os.getenv("GROQ_RATE_LIMIT_RETRIES", "2"))
-        for attempt in range(retries + 1):
+        raw: str | None = None
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if gemini_key:
             try:
-                response = client.chat.completions.create(**request_args)
-                break
-            except RateLimitError:
-                if attempt == retries:
-                    raise
-                # Exponential backoff with a little jitter avoids immediately
-                # reusing an already exhausted rate-limit window.
-                time.sleep((2**attempt) + random.uniform(0, 0.5))
+                model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+                response = requests.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                    params={"key": gemini_key},
+                    json={
+                        "system_instruction": {"parts": [{"text": "You return strict JSON and never include markdown fences."}]},
+                        "contents": [{"role": "user", "parts": [{"text": json.dumps(prompt)}]}],
+                        "generationConfig": {
+                            "temperature": 0.1,
+                            "maxOutputTokens": int(os.getenv("GROQ_MAX_COMPLETION_TOKENS", "700")),
+                            "responseMimeType": "application/json",
+                        },
+                    },
+                    timeout=45,
+                )
+                response.raise_for_status()
+                raw = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            except Exception:
+                # A provider failure should not stop the brief when Groq is available.
+                raw = None
 
-        raw = response.choices[0].message.content or "{\"summaries\": []}"
+        if raw is None:
+            client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+            retries = int(os.getenv("GROQ_RATE_LIMIT_RETRIES", "2"))
+            for attempt in range(retries + 1):
+                try:
+                    response = client.chat.completions.create(**groq_request_args)
+                    raw = response.choices[0].message.content
+                    break
+                except RateLimitError:
+                    if attempt == retries:
+                        raise
+                    time.sleep((2**attempt) + random.uniform(0, 0.5))
+
+        raw = raw or "{\"summaries\": []}"
         envelope = SummaryEnvelope.model_validate(parse_json_payload(raw))
         source_dates = {
             canonical_url(str(article.url)): relative_published_time(article.published_at)

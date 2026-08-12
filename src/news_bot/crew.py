@@ -7,24 +7,26 @@ from crewai import Agent, Crew, LLM, Process, Task
 from .tools import DiscordBotTool, NewsFetcherTool, SheetsLoggerTool, SlackBotTool, SummarizerTool
 
 
-def _agent_llm() -> LLM:
-    """Use Groq's OpenAI-compatible endpoint for all CrewAI agents."""
-    # Tool selection benefits from the stronger model; actual article
-    # summarization stays on the lightweight GROQ_MODEL setting.
-    model = os.getenv("CREWAI_MODEL", "groq/llama-3.3-70b-versatile")
-    if model.startswith("groq/"):
-        model = model.removeprefix("groq/")
+def _agent_llm(provider: str | None = None) -> LLM:
+    """Create a Gemini-first CrewAI LLM, or explicitly select the Groq fallback."""
+    model = os.getenv("CREWAI_MODEL", "gemini/gemini-3-flash-preview")
+    if provider != "groq" and os.getenv("GEMINI_API_KEY") and not model.startswith("groq/"):
+        return LLM(model=model, api_key=os.environ["GEMINI_API_KEY"], temperature=0.1)
+
+    groq_model = model.removeprefix("groq/") if model.startswith("groq/") else os.getenv(
+        "GROQ_MODEL", "llama-3.1-8b-instant"
+    )
     return LLM(
-        model=f"openai/{model}",
+        model=f"openai/{groq_model}",
         api_key=os.getenv("GROQ_API_KEY"),
         base_url="https://api.groq.com/openai/v1",
         temperature=0.1,
     )
 
 
-def build_crew() -> Crew:
+def build_crew(provider: str | None = None) -> Crew:
     """Build the required sequential multi-agent CrewAI workflow."""
-    llm = _agent_llm()
+    llm = _agent_llm(provider)
     # CrewAI needs turns to choose a tool, consume its result, and return a
     # final task answer. Three is the smallest reliable cap for this workflow.
     agent_options = {"llm": llm, "allow_delegation": False, "verbose": False, "max_iter": 3}
