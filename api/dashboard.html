@@ -41,7 +41,7 @@
     .field input, .field select { width: 100%; height: 46px; padding: 0 13px; border: 1px solid #37404e; border-radius: 6px; background: #0c0f14; color: #f5f7fa; outline: none; }
     .field input:focus, .field select:focus { border-color: #8aa9e0; box-shadow: 0 0 0 3px rgba(111, 147, 207, .14); }
     .hint { margin: 8px 0 0; color: #7e899a; font-size: 12px; line-height: 1.4; }
-    .run-settings { display: grid; grid-template-rows: auto 46px; gap: 12px; padding-left: 24px; border-left: 1px solid #2b3441; }
+    .run-settings { display: grid; grid-template-rows: auto auto 46px; gap: 12px; padding-left: 24px; border-left: 1px solid #2b3441; }
     .run-settings .field { display: grid; grid-template-columns: 1fr; }
     .action { width: 100%; height: 46px; border: 1px solid #6689c4; border-radius: 6px; background: #5f82bd; color: #fff; font-weight: 700; cursor: pointer; }
     .action:hover { background: #6d91cd; }
@@ -109,7 +109,7 @@
       <div id="brief-panel" class="tab-panel" role="tabpanel">
         <form id="run-form" class="form">
         <div class="field"><label for="topics">Topics</label><input id="topics" name="topics" maxlength="200" value="artificial intelligence, technology, finance, crypto" placeholder="AI, startups, climate"><p class="hint">Use commas to separate up to four topics.</p></div>
-        <div class="run-settings"><div class="field"><label for="limit">Stories per topic</label><select id="limit" name="limit"><option value="1">1 story</option><option value="2" selected>2 stories</option><option value="3">3 stories</option></select></div><button id="run" class="action" type="submit">Run brief</button></div>
+        <div class="run-settings"><div class="field"><label for="limit">Stories per topic</label><select id="limit" name="limit"><option value="1">1 story</option><option value="2" selected>2 stories</option><option value="3">3 stories</option></select></div><div class="field"><label for="max-articles">Maximum articles</label><select id="max-articles" name="max-articles"><option value="1">1 article</option><option value="2" selected>2 articles</option><option value="4">4 articles</option></select></div><button id="run" class="action" type="submit">Run brief</button></div>
         </form>
         <div id="result" class="result" aria-live="polite"></div>
       </div>
@@ -118,7 +118,7 @@
     <footer class="footer"><span>Search via Serper &middot; Summaries via Gemini (Groq fallback) &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
   </main>
   <script>
-    const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit');
+    const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit'), maxArticles = document.querySelector('#max-articles');
     const briefTab = document.querySelector('#brief-tab'), historyTab = document.querySelector('#history-tab'), briefPanel = document.querySelector('#brief-panel'), historyPanel = document.querySelector('#history-panel'), historyList = document.querySelector('#history-list');
     function show(message, type = 'progress') { out.className = `result visible ${type}`; out.textContent = message; }
     function parsePipelineResult(result) {
@@ -170,7 +170,7 @@
       if (count > 4) { show('Choose up to four comma-separated topics.'); return; }
       run.disabled = true; run.textContent = 'Running...'; show('The CrewAI workflow is running...');
       try {
-        const response = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topics: selectedTopics, limit_per_topic: Number(limit.value) }) });
+        const response = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topics: selectedTopics, limit_per_topic: Number(limit.value), max_articles: Number(maxArticles.value) }) });
         const data = await response.json();
         if (!response.ok) throw Error(data.detail || 'Request failed');
         showSuccess(data.result);

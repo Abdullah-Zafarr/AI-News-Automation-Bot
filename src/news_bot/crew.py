@@ -25,7 +25,7 @@ def _agent_llm(provider: str | None = None) -> LLM:
     )
 
 
-def build_crew(provider: str | None = None) -> Crew:
+def build_crew(provider: str | None = None, max_articles: int = 2) -> Crew:
     """Build the required sequential multi-agent CrewAI workflow."""
     llm = _agent_llm(provider)
     # CrewAI needs turns to choose a tool, consume its result, and return a
@@ -42,7 +42,7 @@ def build_crew(provider: str | None = None) -> Crew:
         role="News Editor",
         goal="Turn raw news search results into short, factual structured summaries.",
         backstory="You are a precise editor who never invents information not present in the input.",
-        tools=[SummarizerTool()],
+        tools=[SummarizerTool(max_articles=max_articles)],
         **agent_options,
     )
     notification_provider = os.getenv("NOTIFICATION_PROVIDER", "slack").lower()

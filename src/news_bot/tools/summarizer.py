@@ -30,6 +30,7 @@ class SummarizerTool(BaseTool):
         "Returns a JSON object with a summaries array."
     )
     args_schema: Type[BaseModel] = SummarizerInput
+    max_articles: int = 2
 
     def _run(self, articles_json: str | list[Any] | dict[str, Any]) -> str:
         articles_payload = parse_json_payload(articles_json)
@@ -49,8 +50,7 @@ class SummarizerTool(BaseTool):
                 unique_articles.append(article)
 
         # Keep a single prompt comfortably below provider token limits.
-        max_articles = int(os.getenv("GROQ_MAX_ARTICLES", "4"))
-        unique_articles = unique_articles[:max_articles]
+        unique_articles = unique_articles[: self.max_articles]
 
         prompt = {
             "instructions": [

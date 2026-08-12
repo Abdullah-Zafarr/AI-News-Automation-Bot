@@ -15,9 +15,9 @@ def test_dashboard_run_passes_user_options_to_pipeline(monkeypatch):
 
     monkeypatch.setattr("api.index.run_news_pipeline", fake_run_news_pipeline)
 
-    response = run_from_dashboard(DashboardRunRequest(topics="AI, robotics", limit_per_topic=3))
+    response = run_from_dashboard(DashboardRunRequest(topics="AI, robotics", limit_per_topic=3, max_articles=2))
 
-    assert captured == {"topics": "AI, robotics", "limit_per_topic": 3}
+    assert captured == {"topics": "AI, robotics", "limit_per_topic": 3, "max_articles": 2}
     assert response == {"success": True, "result": "done"}
 
 

@@ -8,7 +8,7 @@ class FakeCrew:
 
 
 def test_pipeline_kicks_off_the_crewai_workflow(monkeypatch):
-    monkeypatch.setattr("src.news_bot.pipeline.build_crew", lambda: FakeCrew())
+    monkeypatch.setattr("src.news_bot.pipeline.build_crew", lambda **kwargs: FakeCrew())
 
     result = run_news_pipeline(topics="AI", limit_per_topic=2)
 
@@ -29,7 +29,7 @@ def test_pipeline_retries_with_groq_when_gemini_crew_fails(monkeypatch):
         def kickoff(self, *, inputs):
             return "groq result"
 
-    def fake_build_crew(provider=None):
+    def fake_build_crew(provider=None, **kwargs):
         providers.append(provider)
         return FallbackCrew() if provider == "groq" else PrimaryCrew()
 

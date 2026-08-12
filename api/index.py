@@ -30,6 +30,7 @@ class DashboardRunRequest(BaseModel):
 
     topics: str | None = Field(default=None, max_length=200)
     limit_per_topic: int | None = Field(default=None, ge=1, le=3)
+    max_articles: int | None = Field(default=None, ge=1, le=4)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -51,7 +52,11 @@ def run_from_dashboard(payload: DashboardRunRequest):
     if topics and len([topic for topic in topics.split(",") if topic.strip()]) > 4:
         raise HTTPException(status_code=422, detail="Choose at most four topics")
     try:
-        result = run_news_pipeline(topics=topics, limit_per_topic=payload.limit_per_topic)
+        result = run_news_pipeline(
+            topics=topics,
+            limit_per_topic=payload.limit_per_topic,
+            max_articles=payload.max_articles,
+        )
         return {"success": True, "result": result.raw}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Pipeline failed: {exc}") from exc
