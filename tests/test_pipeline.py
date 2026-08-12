@@ -18,12 +18,12 @@ def test_pipeline_kicks_off_the_crewai_workflow(monkeypatch):
 def test_pipeline_retries_with_groq_when_gemini_crew_fails(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "gemini-key")
     monkeypatch.setenv("GROQ_API_KEY", "groq-key")
-    monkeypatch.setenv("CREWAI_MODEL", "gemini/gemini-3-flash-preview")
+    monkeypatch.setenv("CREWAI_MODEL", "gemini/gemini-3.5-flash")
     providers = []
 
     class PrimaryCrew:
         def kickoff(self, *, inputs):
-            raise RuntimeError("Gemini rate limited")
+            raise RuntimeError("Invalid response from LLM call - None or empty")
 
     class FallbackCrew:
         def kickoff(self, *, inputs):

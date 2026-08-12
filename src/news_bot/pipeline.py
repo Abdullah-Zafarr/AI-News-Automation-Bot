@@ -28,7 +28,7 @@ def run_news_pipeline(
         # CrewAI calls the LLM to decide which tool to invoke. Retry the whole
         # sequential run on Groq when the Gemini primary is unavailable or
         # rate limited. Publisher and Sheets tools remain idempotent.
-        model = os.getenv("CREWAI_MODEL", "gemini/gemini-3-flash-preview")
+        model = os.getenv("CREWAI_MODEL", "gemini/gemini-3.5-flash")
         if not (os.getenv("GEMINI_API_KEY") and os.getenv("GROQ_API_KEY") and not model.startswith("groq/")):
             raise
         print("[LLM_FALLBACK] Gemini unavailable; retrying CrewAI run with Groq")

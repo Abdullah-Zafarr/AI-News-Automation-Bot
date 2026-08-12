@@ -80,7 +80,7 @@ class SummarizerTool(BaseTool):
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key:
             try:
-                model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+                model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
                 response = requests.post(
                     f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
                     params={"key": gemini_key},

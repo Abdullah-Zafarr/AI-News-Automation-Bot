@@ -9,7 +9,7 @@ from .tools import DiscordBotTool, NewsFetcherTool, SheetsLoggerTool, SlackBotTo
 
 def _agent_llm(provider: str | None = None) -> LLM:
     """Create a Gemini-first CrewAI LLM, or explicitly select the Groq fallback."""
-    model = os.getenv("CREWAI_MODEL", "gemini/gemini-3-flash-preview")
+    model = os.getenv("CREWAI_MODEL", "gemini/gemini-3.5-flash")
     if provider != "groq" and os.getenv("GEMINI_API_KEY") and not model.startswith("groq/"):
         return LLM(model=model, api_key=os.environ["GEMINI_API_KEY"], temperature=0.1)
 
