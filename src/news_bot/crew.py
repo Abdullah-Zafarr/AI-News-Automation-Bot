@@ -13,9 +13,10 @@ def _agent_llm(provider: str | None = None) -> LLM:
     if provider != "groq" and os.getenv("GEMINI_API_KEY") and not model.startswith("groq/"):
         return LLM(model=model, api_key=os.environ["GEMINI_API_KEY"], temperature=0.1)
 
-    groq_model = model.removeprefix("groq/") if model.startswith("groq/") else os.getenv(
-        "GROQ_MODEL", "llama-3.1-8b-instant"
-    )
+    # Always use the dedicated fallback setting. This avoids an older
+    # CREWAI_MODEL value (for example Groq's 70B model) unexpectedly consuming
+    # the fallback provider's daily quota.
+    groq_model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     return LLM(
         model=f"openai/{groq_model}",
         api_key=os.getenv("GROQ_API_KEY"),
