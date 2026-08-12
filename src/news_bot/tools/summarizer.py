@@ -32,6 +32,23 @@ class SummarizerTool(BaseTool):
     args_schema: Type[BaseModel] = SummarizerInput
     max_articles: int = 2
 
+    @staticmethod
+    def _source_summary_fallback(articles: list[Article]) -> str:
+        """Keep a brief deliverable when an upstream LLM returns no JSON."""
+        summaries = [
+            NewsSummary(
+                date=relative_published_time(article.published_at),
+                headline=article.headline,
+                summary=article.snippet or "Read the linked article for details.",
+                source_url=article.url,
+                source=article.source,
+                topic=article.topic,
+            ).model_dump(mode="json")
+            for article in articles
+        ]
+        print("[SUMMARY_FALLBACK] Provider returned no usable JSON; using source snippets")
+        return json.dumps({"summaries": summaries})
+
     def _run(self, articles_json: str | list[Any] | dict[str, Any]) -> str:
         articles_payload = parse_json_payload(articles_json)
         if isinstance(articles_payload, dict):
@@ -114,8 +131,13 @@ class SummarizerTool(BaseTool):
                         raise
                     time.sleep((2**attempt) + random.uniform(0, 0.5))
 
-        raw = raw or "{\"summaries\": []}"
-        envelope = SummaryEnvelope.model_validate(parse_json_payload(raw))
+        if not raw:
+            return self._source_summary_fallback(unique_articles)
+
+        try:
+            envelope = SummaryEnvelope.model_validate(parse_json_payload(raw))
+        except Exception:
+            return self._source_summary_fallback(unique_articles)
         source_dates = {
             canonical_url(str(article.url)): relative_published_time(article.published_at)
             for article in unique_articles
