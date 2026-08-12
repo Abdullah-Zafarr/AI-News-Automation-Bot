@@ -1,39 +1,43 @@
 from src.news_bot.pipeline import run_news_pipeline
 
 
-class FakeCrew:
-    def kickoff(self, *, inputs):
-        assert inputs == {"topics": "AI", "limit_per_topic": 2}
-        return "crew result"
+def test_pipeline_runs_tools_in_order_without_agent_llm_calls(monkeypatch):
+    calls = []
 
+    class FakeFetcher:
+        def run(self, **kwargs):
+            calls.append(("fetch", kwargs))
+            return "articles"
 
-def test_pipeline_kicks_off_the_crewai_workflow(monkeypatch):
-    monkeypatch.setattr("src.news_bot.pipeline.build_crew", lambda **kwargs: FakeCrew())
+    class FakeSummarizer:
+        def __init__(self, *, max_articles):
+            self.max_articles = max_articles
 
-    result = run_news_pipeline(topics="AI", limit_per_topic=2)
+        def run(self, **kwargs):
+            calls.append(("summarize", self.max_articles, kwargs))
+            return "summaries"
 
-    assert result == "crew result"
+    class FakePublisher:
+        def run(self, **kwargs):
+            calls.append(("publish", kwargs))
+            return "published"
 
+    class FakeLogger:
+        def run(self, **kwargs):
+            calls.append(("archive", kwargs))
+            return "archived"
 
-def test_pipeline_retries_with_groq_when_gemini_crew_fails(monkeypatch):
-    monkeypatch.setenv("GEMINI_API_KEY", "gemini-key")
-    monkeypatch.setenv("GROQ_API_KEY", "groq-key")
-    monkeypatch.setenv("CREWAI_MODEL", "gemini/gemini-3.5-flash")
-    providers = []
+    monkeypatch.setattr("src.news_bot.pipeline.NewsFetcherTool", FakeFetcher)
+    monkeypatch.setattr("src.news_bot.pipeline.SummarizerTool", FakeSummarizer)
+    monkeypatch.setattr("src.news_bot.pipeline.SlackBotTool", FakePublisher)
+    monkeypatch.setattr("src.news_bot.pipeline.SheetsLoggerTool", FakeLogger)
 
-    class PrimaryCrew:
-        def kickoff(self, *, inputs):
-            raise RuntimeError("Invalid response from LLM call - None or empty")
+    result = run_news_pipeline(topics="AI", limit_per_topic=1, max_articles=2)
 
-    class FallbackCrew:
-        def kickoff(self, *, inputs):
-            return "groq result"
-
-    def fake_build_crew(provider=None, **kwargs):
-        providers.append(provider)
-        return FallbackCrew() if provider == "groq" else PrimaryCrew()
-
-    monkeypatch.setattr("src.news_bot.pipeline.build_crew", fake_build_crew)
-
-    assert run_news_pipeline(topics="AI", limit_per_topic=1) == "groq result"
-    assert providers == [None, "groq"]
+    assert result.raw == "archived"
+    assert calls == [
+        ("fetch", {"topics": "AI", "limit_per_topic": 1}),
+        ("summarize", 2, {"articles_json": "articles"}),
+        ("publish", {"summaries_json": "summaries"}),
+        ("archive", {"published_json": "published"}),
+    ]
