@@ -59,19 +59,38 @@
     .tab { border: 1px solid transparent; border-radius: 5px; padding: 7px 11px; background: transparent; color: #9ba8bb; cursor: pointer; font-size: 13px; font-weight: 700; }
     .tab.active { border-color: #3e4e64; background: #182231; color: #edf3fc; }
     .tab-panel[hidden] { display: none; }
-    .history { padding: 0 24px 24px; }
-    .history-copy { margin: 0 0 15px; color: #9ca9ba; font-size: 13px; }
-    .history-list { display: grid; gap: 8px; }
-    .history-item { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 13px 14px; border: 1px solid #293240; border-radius: 6px; background: #0c0f14; }
-    .history-item a { color: #d9e8ff; text-decoration: none; font-size: 14px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .history-item a:hover { color: #8dbaff; text-decoration: underline; }
-    .history-meta { color: #8491a2; font-size: 12px; }
-    .topic { border: 1px solid #3a4658; border-radius: 12px; padding: 4px 8px; color: #a8c5ed; font-size: 11px; white-space: nowrap; }
+    .history { padding: 24px; }
+    .history-top { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    .history-kicker { margin: 0 0 5px; color: #79a7e7; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .history-heading { margin: 0; color: #eff4fb; font-size: 20px; letter-spacing: -.025em; }
+    .history-copy { margin: 6px 0 0; color: #8f9bad; font-size: 13px; }
+    .history-count { border: 1px solid #334a68; border-radius: 999px; padding: 6px 10px; background: #111d2b; color: #a8cbfa; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .history-controls { display: flex; gap: 10px; margin-bottom: 14px; }
+    .history-search { width: min(100%, 330px); height: 38px; padding: 0 12px; border: 1px solid #354152; border-radius: 6px; background: #0c0f14; color: #eaf0f8; outline: none; font-size: 13px; }
+    .history-search:focus { border-color: #7ca5e0; box-shadow: 0 0 0 3px rgba(111, 147, 207, .14); }
+    .history-list { display: grid; gap: 9px; }
+    .history-item { position: relative; display: grid; grid-template-columns: 146px minmax(0, 1fr) auto; gap: 18px; align-items: center; min-height: 68px; padding: 14px 16px; border: 1px solid #293240; border-radius: 8px; background: linear-gradient(90deg, #0d1219 0%, #0c0f14 60%); overflow: hidden; transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+    .history-item::before { position: absolute; inset: 0 auto 0 0; width: 3px; background: #4c7fbd; content: ""; opacity: 0; transition: opacity .18s ease; }
+    .history-item:hover { border-color: #405a7b; background: linear-gradient(90deg, #101924 0%, #0d1117 60%); transform: translateY(-1px); }
+    .history-item:hover::before { opacity: 1; }
+    .history-source { display: grid; gap: 4px; min-width: 0; }
+    .history-date { color: #a7b8ce; font-size: 12px; }
+    .history-publication { overflow: hidden; color: #728197; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .history-item a { display: inline-flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; color: #edf4ff; text-decoration: none; font-size: 15px; font-weight: 700; letter-spacing: -.012em; }
+    .history-item a::after { color: #78a9ea; content: "↗"; font-size: 14px; opacity: 0; transform: translate(-3px, 3px); transition: opacity .18s ease, transform .18s ease; }
+    .history-item:hover a::after, .history-item a:focus-visible::after { opacity: 1; transform: translate(0, 0); }
+    .history-item a:hover { color: #91beff; }
+    .history-item a:focus-visible { outline: 2px solid #83ace5; outline-offset: 4px; border-radius: 2px; }
+    .topic { border: 1px solid #3a526e; border-radius: 999px; padding: 5px 9px; background: #101b29; color: #b5d3fb; font-size: 11px; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
+    .topic.crypto { border-color: #625090; background: #1a1530; color: #c7b4ff; }
+    .topic.finance { border-color: #3c6b58; background: #10251d; color: #9cdbb8; }
+    .topic.technology { border-color: #356880; background: #0d2631; color: #8ed8f2; }
+    .topic.ai, .topic.artificial-intelligence { border-color: #7052a2; background: #211737; color: #d1b8ff; }
     .history-empty { padding: 26px; border: 1px dashed #364151; border-radius: 6px; color: #929fb0; text-align: center; font-size: 13px; }
     @media (min-width: 861px) and (min-height: 700px) { .page { padding: 30px 0 22px; } .workspace { margin-top: 32px; } .footer { display: none; } }
-    @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } .partners { max-width: 650px; } .form { grid-template-columns: 1fr; } .run-settings { max-width: 320px; padding: 20px 0 0; border-top: 1px solid #2b3441; border-left: 0; } .footer { display: block; } .footer span { display: block; margin-bottom: 7px; } }
+    @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } .partners { max-width: 650px; } .form { grid-template-columns: 1fr; } .run-settings { max-width: 320px; padding: 20px 0 0; border-top: 1px solid #2b3441; border-left: 0; } .history-item { grid-template-columns: 125px minmax(0, 1fr) auto; gap: 12px; } .footer { display: block; } .footer span { display: block; margin-bottom: 7px; } }
     @media (max-width: 620px) { .partners { gap: 16px; } .integration { gap: 7px; font-size: 12px; } .integration-mark { width: 28px; height: 28px; flex-basis: 28px; } .integration-mark svg { width: 25px; height: 25px; } }
-    @media (max-width: 560px) { .header-inner, .page { width: calc(100% - 32px); } .header-inner { height: 64px; } .tag { display: none; } .page { padding-top: 36px; } .intro h1 { font-size: 40px; } .workspace { margin-top: 36px; } .workspace-header { padding: 16px 18px; } .workspace-header span { display: none; } .form { padding: 20px 18px; } .run-settings { max-width: none; } .result { margin: 0 18px 18px; } .footer { line-height: 1.5; } }
+    @media (max-width: 560px) { .header-inner, .page { width: calc(100% - 32px); } .header-inner { height: 64px; } .tag { display: none; } .page { padding-top: 36px; } .intro h1 { font-size: 40px; } .workspace { margin-top: 36px; } .workspace-header { padding: 16px 18px; } .workspace-header span { display: none; } .form, .history { padding: 20px 18px; } .run-settings { max-width: none; } .history-top { align-items: start; flex-direction: column; gap: 12px; } .history-item { grid-template-columns: 1fr auto; gap: 9px 12px; } .history-source { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; gap: 8px; } .history-publication::before { color: #59677a; content: "· "; } .result { margin: 0 18px 18px; } .footer { line-height: 1.5; } }
   </style>
 </head>
 <body>
@@ -113,13 +132,14 @@
         </form>
         <div id="result" class="result" aria-live="polite"></div>
       </div>
-      <div id="history-panel" class="tab-panel" role="tabpanel" hidden><div class="history"><p class="history-copy">Published articles from your Google Sheets archive, grouped by the topic that was searched.</p><div id="history-list" class="history-list"></div></div></div>
+      <div id="history-panel" class="tab-panel" role="tabpanel" hidden><div class="history"><div class="history-top"><div><p class="history-kicker">Google Sheets archive</p><h3 class="history-heading">Published briefs</h3><p class="history-copy">Revisit every article your workflow has sent, organized by the searched topic.</p></div><span id="history-count" class="history-count">Archive</span></div><div class="history-controls"><input id="history-search" class="history-search" type="search" placeholder="Search headlines, sources, or topics" aria-label="Search article history"></div><div id="history-list" class="history-list"></div></div></div>
     </section>
     <footer class="footer"><span>Search via Serper &middot; Summaries via Gemini (Groq fallback) &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
   </main>
   <script>
     const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit'), maxArticles = document.querySelector('#max-articles');
-    const briefTab = document.querySelector('#brief-tab'), historyTab = document.querySelector('#history-tab'), briefPanel = document.querySelector('#brief-panel'), historyPanel = document.querySelector('#history-panel'), historyList = document.querySelector('#history-list');
+    const briefTab = document.querySelector('#brief-tab'), historyTab = document.querySelector('#history-tab'), briefPanel = document.querySelector('#brief-panel'), historyPanel = document.querySelector('#history-panel'), historyList = document.querySelector('#history-list'), historySearch = document.querySelector('#history-search'), historyCount = document.querySelector('#history-count');
+    let historyEntries = [];
     function show(message, type = 'progress') { out.className = `result visible ${type}`; out.textContent = message; }
     function parsePipelineResult(result) {
       if (typeof result !== 'string') return result || {};
@@ -145,17 +165,29 @@
       briefPanel.hidden = showHistory; historyPanel.hidden = !showHistory;
     }
     function escapeHtml(value) { const node = document.createElement('span'); node.textContent = value || ''; return node.innerHTML; }
+    function topicClass(topic) { return (topic || 'general').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+    function renderHistory(entries) {
+      historyCount.textContent = `${entries.length} ${entries.length === 1 ? 'article' : 'articles'}`;
+      if (!entries.length) { historyList.innerHTML = '<div class="history-empty">No matching articles in your archive.</div>'; return; }
+      historyList.innerHTML = entries.map(entry => `<article class="history-item"><div class="history-source"><span class="history-date">${escapeHtml(entry.date || 'Recently')}</span><span class="history-publication">${escapeHtml(entry.source || 'Unknown source')}</span></div><a href="${escapeHtml(entry.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.headline)}</a><span class="topic ${topicClass(entry.topic)}">${escapeHtml(entry.topic || 'General')}</span></article>`).join('');
+    }
+    function filterHistory() {
+      const query = historySearch.value.trim().toLowerCase();
+      renderHistory(query ? historyEntries.filter(entry => [entry.headline, entry.source, entry.topic].some(value => (value || '').toLowerCase().includes(query))) : historyEntries);
+    }
     async function loadHistory() {
       historyList.innerHTML = '<div class="history-empty">Loading archive…</div>';
       try {
         const response = await fetch('/api/history'); const data = await response.json();
         if (!response.ok) throw Error(data.detail || 'Could not load history');
-        if (!data.entries.length) { historyList.innerHTML = '<div class="history-empty">No published articles yet. Run a brief to start your archive.</div>'; return; }
-        historyList.innerHTML = data.entries.map(entry => `<article class="history-item"><span class="history-meta">${escapeHtml(entry.date)}${entry.source ? ` · ${escapeHtml(entry.source)}` : ''}</span><a href="${escapeHtml(entry.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.headline)}</a><span class="topic">${escapeHtml(entry.topic || 'General')}</span></article>`).join('');
-      } catch (error) { historyList.innerHTML = `<div class="history-empty">${escapeHtml(error.message)}</div>`; }
+        historyEntries = data.entries;
+        if (!historyEntries.length) { historyCount.textContent = 'No articles yet'; historyList.innerHTML = '<div class="history-empty">No published articles yet. Run a brief to start your archive.</div>'; return; }
+        filterHistory();
+      } catch (error) { historyCount.textContent = 'Unavailable'; historyList.innerHTML = `<div class="history-empty">${escapeHtml(error.message)}</div>`; }
     }
     briefTab.addEventListener('click', () => switchTab(false));
     historyTab.addEventListener('click', () => { switchTab(true); loadHistory(); });
+    historySearch.addEventListener('input', filterHistory);
     document.querySelectorAll('.preset').forEach(button => button.addEventListener('click', () => {
       const topic = button.dataset.topic;
       const selected = topics.value.split(',').map(value => value.trim()).filter(Boolean);
