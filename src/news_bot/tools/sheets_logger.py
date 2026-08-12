@@ -134,3 +134,40 @@ class SheetsLoggerTool(BaseTool):
             response.raise_for_status()
 
         return json.dumps({"logged": logged, "skipped": skipped})
+
+
+def read_archive_history(limit: int = 250) -> list[dict[str, str]]:
+    """Read the published-news archive for the dashboard history view."""
+    spreadsheet_id = os.getenv("GOOGLE_SHEET_ID")
+    if not spreadsheet_id:
+        raise RuntimeError("GOOGLE_SHEET_ID is not configured")
+
+    sheet_name = os.getenv("GOOGLE_SHEET_NAME", "News")
+    tool = SheetsLoggerTool()
+    response = tool._session().get(
+        tool._values_url(spreadsheet_id, f"{sheet_name}!A:H"), timeout=20
+    )
+    response.raise_for_status()
+    rows = response.json().get("values", [])
+    if len(rows) < 2:
+        return []
+
+    headers = rows[0]
+    entries: list[dict[str, str]] = []
+    for row in reversed(rows[1:]):
+        record = dict(zip(headers, row))
+        url = record.get("Source URL", "")
+        headline = record.get("Headline", "")
+        if url and headline:
+            entries.append(
+                {
+                    "date": record.get("Date", ""),
+                    "headline": headline,
+                    "source_url": url,
+                    "source": record.get("Source", ""),
+                    "topic": record.get("Topic", ""),
+                }
+            )
+        if len(entries) >= limit:
+            break
+    return entries

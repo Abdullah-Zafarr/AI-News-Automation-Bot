@@ -31,7 +31,7 @@
     .integration-mark svg { width: 43px; height: 43px; }
     .serper { color: #9274ff; }
     .crewai { color: #fa736b; }
-    .groq { color: #ff8747; }
+    .gemini { color: #65a8ff; }
     .sheets { color: #43bf7e; }
     .workspace { position: relative; z-index: 1; margin-top: 32px; border: 1px solid #2a313d; border-radius: 10px; background: #11151d; overflow: hidden; box-shadow: 0 12px 34px rgba(0, 0, 0, .16); }
     .workspace-header { padding: 18px 24px; border-bottom: 1px solid #2a313d; display: flex; align-items: center; justify-content: space-between; }
@@ -55,7 +55,20 @@
     .result-icon { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 50%; background: #1f7755; color: #fff; font-size: 16px; font-weight: 800; }
     .result-copy strong { display: block; color: inherit; font-size: 14px; }
     .result-copy span { display: block; margin-top: 3px; color: #a9d8bf; font-size: 13px; }
-    @media (min-width: 861px) and (min-height: 700px) { body { height: 100vh; overflow: hidden; } .page { height: calc(100vh - 73px); padding: 30px 0 22px; display: grid; grid-template-rows: auto auto; align-content: space-between; gap: 30px; } .workspace { margin: 0; transform: translateY(-24px); } .footer { display: none; } }
+    .tabs { display: flex; gap: 6px; }
+    .tab { border: 1px solid transparent; border-radius: 5px; padding: 7px 11px; background: transparent; color: #9ba8bb; cursor: pointer; font-size: 13px; font-weight: 700; }
+    .tab.active { border-color: #3e4e64; background: #182231; color: #edf3fc; }
+    .tab-panel[hidden] { display: none; }
+    .history { padding: 0 24px 24px; }
+    .history-copy { margin: 0 0 15px; color: #9ca9ba; font-size: 13px; }
+    .history-list { display: grid; gap: 8px; }
+    .history-item { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 13px 14px; border: 1px solid #293240; border-radius: 6px; background: #0c0f14; }
+    .history-item a { color: #d9e8ff; text-decoration: none; font-size: 14px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-item a:hover { color: #8dbaff; text-decoration: underline; }
+    .history-meta { color: #8491a2; font-size: 12px; }
+    .topic { border: 1px solid #3a4658; border-radius: 12px; padding: 4px 8px; color: #a8c5ed; font-size: 11px; white-space: nowrap; }
+    .history-empty { padding: 26px; border: 1px dashed #364151; border-radius: 6px; color: #929fb0; text-align: center; font-size: 13px; }
+    @media (min-width: 861px) and (min-height: 700px) { .page { padding: 30px 0 22px; } .workspace { margin-top: 32px; } .footer { display: none; } }
     @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } .partners { max-width: 650px; } .form { grid-template-columns: 1fr; } .run-settings { max-width: 320px; padding: 20px 0 0; border-top: 1px solid #2b3441; border-left: 0; } .footer { display: block; } .footer span { display: block; margin-bottom: 7px; } }
     @media (max-width: 620px) { .partners { gap: 16px; } .integration { gap: 7px; font-size: 12px; } .integration-mark { width: 28px; height: 28px; flex-basis: 28px; } .integration-mark svg { width: 25px; height: 25px; } }
     @media (max-width: 560px) { .header-inner, .page { width: calc(100% - 32px); } .header-inner { height: 64px; } .tag { display: none; } .page { padding-top: 36px; } .intro h1 { font-size: 40px; } .workspace { margin-top: 36px; } .workspace-header { padding: 16px 18px; } .workspace-header span { display: none; } .form { padding: 20px 18px; } .run-settings { max-width: none; } .result { margin: 0 18px 18px; } .footer { line-height: 1.5; } }
@@ -87,22 +100,26 @@
       <aside class="partners" aria-label="Services used by this workflow">
         <span class="integration"><span class="integration-mark serper"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="5.4" stroke="currentColor" stroke-width="2.2"/><path d="m15 15 4.2 4.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Serper</span>
         <span class="integration"><span class="integration-mark crewai"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.8c1.9 4.2 4 6.3 8.2 8.2-4.2 1.9-6.3 4-8.2 8.2-1.9-4.2-4-6.3-8.2-8.2 4.2-1.9 6.3-4 8.2-8.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>CrewAI</span>
-        <span class="integration"><span class="integration-mark groq"><svg viewBox="0 0 24 24" fill="none"><path d="m13.8 3.7-7.1 9h4.9l-1.3 7.6 7-9h-4.8l1.3-7.6Z" fill="currentColor"/></svg></span>Groq</span>
+        <span class="integration"><span class="integration-mark gemini"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2.8c1.65 4.3 4.9 7.55 9.2 9.2-4.3 1.65-7.55 4.9-9.2 9.2-1.65-4.3-4.9-7.55-9.2-9.2 4.3-1.65 7.55-4.9 9.2-9.2Z" fill="currentColor"/></svg></span>Gemini</span>
         <span class="integration"><span class="integration-mark sheets"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3.8h7l3 3v13.4H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3.8v3.5h3M9.5 11h5M9.5 14h5M9.5 17h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Google Sheets</span>
       </aside>
     </section>
     <section class="workspace" aria-labelledby="run-title">
-      <div class="workspace-header"><h2 id="run-title">Configure a news brief</h2></div>
-      <form id="run-form" class="form">
+      <div class="workspace-header"><h2 id="run-title">News workspace</h2><div class="tabs" role="tablist"><button class="tab active" id="brief-tab" type="button" role="tab" aria-selected="true">New brief</button><button class="tab" id="history-tab" type="button" role="tab" aria-selected="false">History</button></div></div>
+      <div id="brief-panel" class="tab-panel" role="tabpanel">
+        <form id="run-form" class="form">
         <div class="field"><label for="topics">Topics</label><input id="topics" name="topics" maxlength="200" value="artificial intelligence, technology, finance, crypto" placeholder="AI, startups, climate"><p class="hint">Use commas to separate up to four topics.</p></div>
         <div class="run-settings"><div class="field"><label for="limit">Stories per topic</label><select id="limit" name="limit"><option value="1">1 story</option><option value="2" selected>2 stories</option><option value="3">3 stories</option></select></div><button id="run" class="action" type="submit">Run brief</button></div>
-      </form>
-      <div id="result" class="result" aria-live="polite"></div>
+        </form>
+        <div id="result" class="result" aria-live="polite"></div>
+      </div>
+      <div id="history-panel" class="tab-panel" role="tabpanel" hidden><div class="history"><p class="history-copy">Published articles from your Google Sheets archive, grouped by the topic that was searched.</p><div id="history-list" class="history-list"></div></div></div>
     </section>
-    <footer class="footer"><span>Search via Serper &middot; Summaries via Groq &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
+    <footer class="footer"><span>Search via Serper &middot; Summaries via Gemini (Groq fallback) &middot; Delivery to Slack &middot; Archive in Google Sheets</span><span>Up to 4 topics per run</span></footer>
   </main>
   <script>
     const form = document.querySelector('#run-form'), run = document.querySelector('#run'), out = document.querySelector('#result'), topics = document.querySelector('#topics'), limit = document.querySelector('#limit');
+    const briefTab = document.querySelector('#brief-tab'), historyTab = document.querySelector('#history-tab'), briefPanel = document.querySelector('#brief-panel'), historyPanel = document.querySelector('#history-panel'), historyList = document.querySelector('#history-list');
     function show(message, type = 'progress') { out.className = `result visible ${type}`; out.textContent = message; }
     function parsePipelineResult(result) {
       if (typeof result !== 'string') return result || {};
@@ -122,6 +139,23 @@
       out.className = 'result visible success';
       out.innerHTML = `<div class="result-content"><span class="result-icon" aria-hidden="true">✓</span><div class="result-copy"><strong>Execution successful</strong><span>${detail}</span></div></div>`;
     }
+    function switchTab(showHistory) {
+      briefTab.classList.toggle('active', !showHistory); historyTab.classList.toggle('active', showHistory);
+      briefTab.setAttribute('aria-selected', String(!showHistory)); historyTab.setAttribute('aria-selected', String(showHistory));
+      briefPanel.hidden = showHistory; historyPanel.hidden = !showHistory;
+    }
+    function escapeHtml(value) { const node = document.createElement('span'); node.textContent = value || ''; return node.innerHTML; }
+    async function loadHistory() {
+      historyList.innerHTML = '<div class="history-empty">Loading archive…</div>';
+      try {
+        const response = await fetch('/api/history'); const data = await response.json();
+        if (!response.ok) throw Error(data.detail || 'Could not load history');
+        if (!data.entries.length) { historyList.innerHTML = '<div class="history-empty">No published articles yet. Run a brief to start your archive.</div>'; return; }
+        historyList.innerHTML = data.entries.map(entry => `<article class="history-item"><span class="history-meta">${escapeHtml(entry.date)}${entry.source ? ` · ${escapeHtml(entry.source)}` : ''}</span><a href="${escapeHtml(entry.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.headline)}</a><span class="topic">${escapeHtml(entry.topic || 'General')}</span></article>`).join('');
+      } catch (error) { historyList.innerHTML = `<div class="history-empty">${escapeHtml(error.message)}</div>`; }
+    }
+    briefTab.addEventListener('click', () => switchTab(false));
+    historyTab.addEventListener('click', () => { switchTab(true); loadHistory(); });
     document.querySelectorAll('.preset').forEach(button => button.addEventListener('click', () => {
       const topic = button.dataset.topic;
       const selected = topics.value.split(',').map(value => value.trim()).filter(Boolean);

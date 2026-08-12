@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from src.news_bot.pipeline import run_news_pipeline
+from src.news_bot.tools.sheets_logger import read_archive_history
 
 load_dotenv()
 app = FastAPI(title="AI News Automation Bot")
@@ -59,6 +60,15 @@ def run_from_dashboard(payload: DashboardRunRequest):
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/history")
+def history() -> dict[str, list[dict[str, str]]]:
+    """Return the durable Google Sheets article archive for the History tab."""
+    try:
+        return {"entries": read_archive_history()}
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"History is unavailable: {exc}") from exc
 
 
 @app.get("/api/cron")
